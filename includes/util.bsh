@@ -1,0 +1,420 @@
+/*
+	util.bsh - common functions
+	Author: Laza
+*/
+
+/******************************************** Utilities */
+
+import java.text.*;
+import java.lang.Number;
+import java.awt.image.*;
+import java.util.*;
+import java.net.URLEncoder;
+import se.datadosen.jalbum.*;
+import se.datadosen.util.*;
+import se.datadosen.jalbum.SignInManager;
+
+// Replacing HTML formatting chars with HTML entities :: to be used in HTML attributes, like "title"
+
+String cleanup(int s) {
+	return s.toString();
+}
+String cleanup(String s) {
+	if(s == null) return "";
+	else return s.replaceAll("&","&#38;").replaceAll("\'","&#39;").replaceAll("\"","&#34;").replaceAll("(\n|\r)","<br/>"); //.replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+// Stripping all HTML tags :: where no HTML tags are allowed, like <title>...</title>
+
+String stripHTML(int s) {
+	return s.toString();
+}
+String stripHTML(String s){
+	if(s == null) return "";
+	else return cleanup(s.replaceAll("\\<[^>]*>"," ").replaceAll("(\n|\r)"," ")).trim();
+}
+
+// Stripping the empty HTML tags used in the templates
+
+String stripEmptyHTML(String s){
+	if (s == null) return "";
+	else return s.replaceAll("\\<([A-Za-z0-9]+)[^>]*></\\1>", "").trim();
+}
+
+// Stripping only the quote characters and new lines :: to be used for javascript vars
+
+String stripQuot(int s) {
+	return s.toString();
+}
+String stripQuot(String s) {
+	if (s == null) return "";
+	return s.replaceAll("\'","&#39;").replaceAll("\"","&#34;").replaceAll("(\n|\r)","<br/>");
+}
+
+// Replacing the line breaks with html tags to avoid breaking javascript constructs
+
+String stripLinebreak(String s) {
+	if (s == null) return "";
+	return s.replaceAll("(\n|\r)", "<br/>");
+}
+
+// Java's URL encoding routine
+
+String urlEncode(String s) {
+	if (engine.isUrlEncode()) {
+		try {
+			s = java.net.URLEncoder.encode(s, "UTF-8").replaceAll("\\+", "%20");
+		}
+		catch(java.io.UnsupportedEncodingException e) {
+			log("Encoding Error:", e);
+		}
+	} else {
+		// Security precaution to avoid broken strings in javascript
+		s = s.replaceAll("\\'", "\\\\'");
+	}
+	return s;
+}
+
+// Primitive function to check if a Beanshell variable exists and has some value
+
+boolean isEmpty(Object o) {
+	return o == void || o == null || o.toString().trim().equals("");
+}
+
+// Primitive function to check if a Beanshell variable exists and is true
+
+boolean isTrue(Object o) {
+	return o != null && ((Boolean) o).booleanValue();
+}
+
+// Retrieves an Object from the current pool of variables
+// staring with 'local' then 'current' finally searching in the skin variables
+// returns 'null' if none found
+
+Object getObject(String name) {
+	Object o;
+	if ((local != void && local != null && (o = local.get(name)) != null) || 
+		(current != void && current != null && (o = current.get(name)) != null) ||
+		(o = engine.getSkinVariables().get(name)) != null)
+		return o;
+	return null;
+}
+
+// Retrieves a user variable (defined on the Settings / Advanced / User variables section)
+
+String getUserVar(String name) {
+	Object o = engine.getUserVariables().get(name);
+	return (o == null)? null : o.toString();
+}
+
+// Retrieves any variable as a String
+
+String getString(String name) {
+	Object o = getObject(name);
+	return (o == null)? "" : o.toString();
+}
+
+// Retrieves any variable as 'int'
+
+int getInteger(String name) {
+	Object o;
+	String s;
+	if ((o = getObject(name)) != null && !isEmpty(s = o.toString())){
+		try { return Integer.parseInt(s);
+		} catch (NumberFormatException e) { log("Number error",e); }
+	}
+	return 0;
+}
+
+// Getting file size in human readable form
+
+String getSizeAsString() {
+	return getSizeAsString(fileSize);
+}
+
+String getSizeAsString(long s) {
+	NumberFormat df = new DecimalFormat("#.##");
+	Float n;
+	String p;
+	if (s >= 1073741824L) { n = (float)s / 1073741824L; p = "GB"; }
+	else if (s >= 1048576L) { n = (float)s / 1048576L; p = "MB"; }
+	else if (s >= 1024) { n = (float)s / 1024L; p = "kB"; }
+	else { n = s; p = "B"; }
+	return df.format(n) + " " + p;
+}
+
+// Getting texts from the translation files, returning empty string if not exists
+
+String getText(String name) {
+	String s = "";
+	try { 
+		s = texts.getString(name);
+	} catch (MissingResourceException e) {
+		return name;
+	}
+	return s;
+}
+
+// Filtering junk texts
+
+String noFlash = getText("noFlash");
+if ( isEmpty(noFlash) ) {
+	noFlash = "No";
+}
+
+String filterJunk(String s) {
+	if ( s == null ) {
+		return s;
+	}
+	s = s.trim();
+	if ( s.length() == 0 || s.equals("x") ||
+		s.startsWith("ACD Systems Digital Imaging") ||
+		s.startsWith("LEAD Technologies") ||
+		s.startsWith("AppleMark") ||
+		s.startsWith("Intel(R) JPEG Library") ||
+		s.startsWith("Created with The GIMP") ||
+		s.startsWith("ASCII") ||
+		s.startsWith("OLYMPUS DIGITAL CAMERA") ||
+		s.startsWith("File written by Adobe Photoshop")) {
+		return "";
+	}
+	else if (s.startsWith("Flash did not fire")) {
+		return noFlash;
+	}
+	return s;
+}
+
+// Getting a Meta field
+
+String getMeta(String key) {
+	Object o;
+	String v;
+	if (meta != void && meta != null && 
+		((o = meta.get(key)) != null ||
+		(o = meta.get("Xmp." + key)) != null ||
+		(o = meta.get("Iptc." + key)) != null ||
+		(o = meta.get("Windows XP " + key)) != null)) {
+		v = o.toString();
+		// F-number correction ( Philippe Couton )
+		if ("F-Number".equals(key) || "FNumber".equals(key) || 
+			key.toLowerCase().startsWith("aperture")) {
+			if (v.charAt(0) == 'F') {
+				v = v.substring(1);
+			}
+			return "f/" + v;
+		}
+		return v;
+	}
+	return null;
+}	
+
+// Enhancing Jalbum with 'fileLabel' and 'fileSize' variables
+// fileLabel = fileTitle if exists or label (=filename without extension) with replaced underscores
+// fileSize = Jalbum's fileSize in human readble form 
+
+String getVar(String name) {
+	Object o;
+	String s;
+	if (isEmpty(name)) {
+		return null;
+	}
+	if (name.equals("fileLabel")) {
+		return (fileTitle != void && !isEmpty(fileTitle))? fileTitle : label.replaceAll("_"," ");
+	} 
+	else if (name.equals("fileSize")) {
+		return getSizeAsString(fileSize);
+	}
+	else if ((o = getObject(name)) != null) {
+		return filterJunk(o.toString());
+	} else if ((s = getMeta(name)) != null) {
+		return filterJunk(s);
+	}
+	return null;
+}
+
+
+// Getting one photoData variable. The input can be piped "Caption|By-Line|Iptc.By-Line" - the first found will be returned
+// Prevalence: 1. Jalbum variable 2. meta variable 3. meta Iptc.variable 4. meta Xmp.variable 5. meta Windows XP variable
+// Returns: "<b>Label</b> Value"
+// If label is found in the trasnlation then it will be used, otherwise the key found
+
+// Remapping proprietary metadata strings
+
+String remapKey(String s) {
+	return s.replaceAll("Canon Makernote.Unknown tag (0x0095)", "lens");
+}
+
+boolean showPhotoDataLabel = true;
+
+String getKey(String templ) {									// Returns the first found in a set of keys, separated by '|'
+	String[] keys = templ.split("\\|");
+	String label;
+	Object val;
+	for(String key : keys) {
+		key = key.trim();
+		if (key.charAt(0) == '#') continue;						// commented out key
+		if ((val = getVar(key)) != null && val.length() > 0) {	// getting the variable
+			if (showPhotoDataLabel) {							// Show with label
+				label = getText(remapKey(key));					// Translated label
+				return "<b>" + (isEmpty(label)? key : label) + "</b> " + val;
+			}
+			else												// Only the value
+				return val;
+		}
+	}
+	return null;
+}
+
+// Retrieves an array of photo data fields on the following format:
+// "Key1|Key1alias1|Key1alias2, Key2, Key3"
+// Retruns the HTML formatted collection of fields found
+
+String getPhotoData() {
+	return (isEmpty(photoDataTemplate))? "" : getPhotoData(photoDataTemplate);
+}
+
+String getPhotoData(templ) {
+	StringBuilder sb = new StringBuilder(1024);
+	String key, val;
+	for (String key : templ.split("[,;]")) {
+		if ((val = getKey(key)) != null) {
+			if (sb.length() > 0) sb.append(" &middot; ");
+			sb.append(val);
+		}
+	}
+	return sb.toString();
+}
+
+// Copying an image to the output's /res folder
+
+String copyImage(name) {
+	File src;
+	if ( !isEmpty(name) ) {
+		src = new File(name);
+		if (src.exists() && resDirectory.exists()) {
+			try {
+				IO.copyFile(src, resDirectory);
+				return urlEncode(src.getName());
+			} catch (IOException e) {
+				log("Error copying image", e);
+			}
+		}
+	}
+	return "";
+}
+
+// Clickable path to the current folder
+
+String indexName = engine.getIndexPageName() + engine.getPageExtension();
+String pathSep = " &raquo; ";
+
+String getBreadcrumbPath(AlbumObject folder, String prefix) {
+	StringBuilder sb = new StringBuilder();
+	if (folder == null) {
+		return "";
+	}
+	sb.append( getBreadcrumbPath(folder.getParent(), (prefix + "../")) );
+	String title = folder.getTitle();
+	if ( "".equals(title) ) {
+		title = folder.getName();
+	}
+	if ( sb.length() > 0 )
+		sb.append(pathSep);
+	sb.append("<a href=\"" + prefix + indexName + "\">" + title + "</a>");
+	return sb.toString();
+}
+
+String getIndexBreadcrumb() {
+	return (level > 0)? getBreadcrumbPath(currentFolder.getParent(), "../") : "";
+}
+
+String getSlideBreadcrumb() {
+	return getBreadcrumbPath(currentFolder, "../");
+}
+
+String getPageBreadcrumb() {
+	return getBreadcrumbPath(currentFolder, "");
+}
+
+// Get simple navigation links
+
+String getRootNavigation() {
+	return getRootNavigation(" | ");
+}
+
+String getRootNavigation(String sep) {
+	StringBuilder sb = new StringBuilder(1024);
+	Category cat;
+	Scope vars;
+	String root = rootPath.equals(".")? "" : (rootPath + "/");
+	
+	if ( level > 0 ) {
+		sb.append("<a href=\"" + root + indexName + "\" class=\"home\">" + getText("home") + "</a>");
+	}		
+	
+	for (AlbumObject ao : rootFolder.getChildren()) {
+		if (ao.isIncluded()) {
+			cat = ao.getCategory();
+			if ( cat == Category.folder || cat == Category.webPage ) {
+				vars = ao.getVars();
+				sb.append(((sb.length() > 0)? sep : "") + 
+					"<a href=\"" + root + vars.get("closeupPath") + "\"" + 
+					((currentObject.isWithin(ao))? " class=\"actual\"" : "") + 
+					">" + vars.get("title") + "</a>");
+			}
+		}
+	}
+	
+	return sb.toString();
+}
+
+// Get the whole navigation menu
+
+String getNavigation() {
+	return getNavigation(rootFolder, "", 3, true);
+}
+
+String getNavigation(boolean home) {
+	return getNavigation(rootFolder, "", 3, home);
+}
+
+String getNavigation(int depth) {
+	return getNavigation(rootFolder, "", depth, true);
+}
+
+String getNavigation(AlbumObject folder, String relPath, int depth, boolean home) {
+	StringBuilder sb = new StringBuilder(2048);
+	boolean isFolder;
+	Category cat;
+	String root = rootPath.equals(".")? "" : (rootPath + "/");
+	String path, relp = (relPath.length() == 0)? "" : (relPath + "/");
+	Scope vars;
+	
+	if ( home ) {
+		sb.append("<li class=\"home\"><a href=\"" + root + indexName + "\" title=\"" + getText("home") + "\">&nbsp;</a></li>");
+	}
+	for (AlbumObject ao : folder.getChildren()) {
+		if (ao.isIncluded()) {
+			cat = ao.getCategory();
+			
+			if ( (isFolder = (cat == Category.folder)) || cat == Category.webPage ) {
+				vars = ao.getVars();
+				path = relp + (isFolder? urlEncode(vars.get("label")) : vars.get("closeupPath")); 
+				
+				sb.append("<li" + ((currentObject.isWithin(ao))? " class=\"actual\"" : "") + ">");
+				sb.append("<a href=\"" + root + path + (isFolder? ("/" + indexName) : "") + "\">" + vars.get("title") + "</a>");				
+				if (cat == Category.folder && depth > 0)
+					sb.append(getNavigation(ao, path, depth - 1, false));
+				sb.append("</li>");
+			}
+		}
+	}
+	
+	if (sb.length() > 0) {
+		sb.insert(0, "<ul>");
+		sb.append("</ul>");
+	}
+	
+	return sb.toString();
+}
+

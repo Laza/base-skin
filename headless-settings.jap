@@ -1,0 +1,30 @@
+#These settings are applied when running jAlbum without its window
+#Fri Mar 02 01:12:17 CET 2012
+skin.panelBackground=\#222222
+skin.uplinkText=
+skin.linkColor=\#ffffff
+skin.indexShowTitle=false
+skin.footerContent=
+skin.indexShowComment=false
+skin.indexShowFileSize=false
+skin.slideShowComment=true
+skin.textColor=\#eeeeee
+skin.slideShowBreadcrumbPath=false
+skin.backgroundImagePath=
+skin.photoDataTemplate=photographer|artist|Artist|Owner|Copyright|Iptc.By-line|Iptc.Copyright Notice, Xmp.Creator, Xmp.Title, objectName, Xmp.Subject, Xmp.Description, Iptc.keywords, Xmp.Format, Xmp.Rights, Xmp.Identifier, Xmp.Label, Country/Primary Location, Province/State, City, Sub-location, originalDate|Date/Time Original|Date/Time|CreateDate|ModifyDate, camera|Model, lens|Lens|Xmp.Lens-Information|Canon Makernote.Unknown tag (0x0095), focalLength35mm|focusDistance|Focal Length|Focallength, SubjectDistance, meteringMode|Metering Mode, isoEquivalent|ISO Speed Ratings, exposureTime|Exposure Time|Shutter Speed Value|ShutterSpeedValue, Aperture Value|aperture|F-Number|FNumber|Aperturevalue, Exposure Bias Value, Exposure Program|Exposureprogram|Exposure Mode, Xmp.SceneType, White Balance|WhiteBalance, Xmp.ColorSpace, Xmp.LightSource, flash|Flash, resolution
+skin.indexShowBreadcrumbPath=false
+skin.thumbnailNavigation=true
+skin.uplinkUrl=
+skin.slideShowTitle=true
+skin.fontFamily="Segoe UI",Arial,"Nimbus Sans L",sans-serif
+skin.backgroundColor=\#000000
+skin.slideShowPhotoData=true
+skin.indexShowDate=false
+skin.showBottomNavigation=false
+skin.headerContent=
+skin.logoPath=
+skin.borderWidth=10
+skin.fixedShapeThumbs=true
+skin.borderColor=\#dddddd
+skin.watermark=
+skin.showTopNavigation=true

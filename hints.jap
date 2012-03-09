@@ -1,0 +1,11 @@
+#
+# Default settings for Base Skin
+# see http://jalbum.net/en/developer/skins/variables
+#
+style=Simple Dark.css
+thumbSize=160x120
+imageSize=830x620
+cols=5
+rows=4
+slides=true
+

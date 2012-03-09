@@ -1,0 +1,27 @@
+<ja:include page="page-header.inc" />
+		
+		<%-- Thumbnail navigation --%>
+		<ja:if test="<%= thumbnailNavigation && totalImages != void && totalImages > 1%>">
+		<div class="thumbnavigation">
+			<table cellpadding="0" cellspacing="0" border="0"><tr>
+				<td align="right" valign="middle" class="leftcol">
+					<ja:fileiterator start="-${thumbnavCount}" count="${thumbnavCount}" nodirs><a href="${closeupPath}" title="${title}"><img src="${thumbPath}" height="${reducedThumbHeight}" alt="${fileName}"></a></ja:fileiterator>
+				</td>
+				<td align="center" valign="middle" class="actual">
+					<img src="${thumbPath}" height="${reducedThumbHeight}" alt="${fileName}">
+				</td>
+				<td align="left" valign="middle" class="rightcol">
+					<ja:fileiterator start="+1" count="${thumbnavCount}" nodirs><a href="${closeupPath}" title="${title}"><img src="${thumbPath}" height="${reducedThumbHeight}" alt="${fileName}"></a></ja:fileiterator>
+				</td>
+			</tr></table>
+		</div>
+		</ja:if>
+
+		<%-- Image, maybe with navigation links --%>
+		<div class="mainimage" style="width:${imageWidth}px;">
+			${imgMap}
+			<img src="${imagePath}" width="${imageWidth}" height="${imageHeight}" alt="${title}"<ja:if exists="imgMap"> usemap="#${imgMapName}"</ja:if>>
+			<ja:if exists="slideCaption"><div class="caption">${slideCaption}</div></ja:if>
+		</div>
+
+<ja:include page="page-footer.inc" />

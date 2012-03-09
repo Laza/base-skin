@@ -1,0 +1,44 @@
+<ja:include page="page-header.inc" />
+				
+			<%-- Iterate through images and produce an index table --%>
+			<table width="100%" cellpadding="0" cellspacing="${thumbCellSpacing}" border="0" class="thumbs">
+
+			<ja:rowiterator>
+				<tr>
+				<% c = 0; %><ja:coliterator>
+					<%
+						initThumb();
+					%>
+					<td valign="top">
+						<ja:if exists="folder">
+						<%-- Folders --%>
+						<div class="thumb folder">
+							<a href="${closeupPath}" title="${title}">
+								<img src="${thumbPath}" alt="${fileName}"><i>&nbsp;</i> <%-- trick to fix vertical alignment --%>
+							</a>
+							<em>&nbsp;</em> <%-- marking folders with a little icon --%>
+						</div>
+						<div class="caption">${thumbCaption}</div>
+						</ja:if>						
+						<ja:else>
+						<%-- Images, movies, and other types --%>
+						<div class="thumb <ja:if exists="iconPath">other</ja:if><ja:else>image</ja:else>">
+							<a href="${closeupPath}" title="${title}">
+								<img src="${thumbPath}" <ja:if not exists="iconPath">width="${thumbWidth}" height="${thumbHeight}" </ja:if>alt="${fileName}"><i>&nbsp;</i>
+							</a>
+						</div>
+						<ja:if exists="thumbCaption"><div class="caption">${thumbCaption}</div></ja:if>
+						</ja:else>
+					</td>
+				<% c++; %></ja:coliterator>
+					<%	// Filling in the last incomplete row 
+						while ( c++ < cols ) {
+							out.print("<td class=\"empty\">&nbsp;</td>");
+						}
+					%>
+				</tr>
+			</ja:rowiterator>
+			
+			</table>
+		
+<ja:include page="page-footer.inc" />

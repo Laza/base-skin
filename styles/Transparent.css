@@ -1,0 +1,13 @@
+@charset "utf-8";
+
+/* Transparent.css :: See-through album */
+
+body, #main {
+	background-color:transparent;
+}
+
+.thumbnavigation .actual img {
+	border-color:${borderColor};
+}
+
+#main { background-color:rgba(255,255,255,0.5); }

@@ -1,0 +1,8 @@
+@charset "utf-8";
+
+/* Enhanced.css :: Basic style sheet with no panel background */
+
+#main {
+	background-color:transparent;
+}
+

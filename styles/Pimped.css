@@ -1,0 +1,76 @@
+@charset "utf-8";
+
+/* Pimped.css :: CSS3-allowed style sheet */
+
+body {
+	background-image:-webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,0.6)), to(rgba(0,0,0,0)));
+	background-image:-webkit-linear-gradient(top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+	background-image:-moz-linear-gradient(top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+	background-image:-ms-linear-gradient(top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+	background-image:linear-gradient(top, rgba(0,0,0,0.6), rgba(0,0,0,0));
+	filter:progid:DXImageTransform.Microsoft.Gradient(StartColorStr=#99000000,EndColorStr=#00000000);
+	background-repeat:no-repeat;
+}
+
+#main {
+	margin:0 auto 20px auto;
+	background-color:${panelBackground};
+	-moz-border-radius:0 0 8px 8px;
+	border-radius:0 0 8px 8px;
+	-moz-box-shadow:2px 4px 12px rgba(0,0,0,0.25);
+	-webkit-box-shadow:2px 4px 12px rgba(0,0,0,0.25);
+	box-shadow:2px 4px 12px rgba(0,0,0,0.25);
+}
+
+#header {
+	background-image:-moz-linear-gradient(top, rgba(255,255,255,0.6), rgba(0,0,0,0.3) );
+	background-image:-webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(255,255,255,0.6)), color-stop(1, rgba(0,0,0,0.3)));
+	background-image:-webkit-linear-gradient(top, rgba(255,255,255,0.6), rgba(0,0,0,0.3) );
+	background-image:-ms-linear-gradient(top, rgba(255,255,255,0.6), rgba(0,0,0,0.3) );
+	background-image:linear-gradient(top, rgba(255,255,255,0.6), rgba(0,0,0,0.3) );
+	filter:progid:DXImageTransform.Microsoft.Gradient(GradientType=0,StartColorStr=#99FFFFFF,EndColorStr=#4D000000);
+	background-repeat:no-repeat;
+}
+
+#content {
+	padding:${boxPadding}px;
+}
+
+.headln h1, .headln h2, .headln h3 {
+	text-shadow:1px 2px 4px rgba(0,0,0,0.2);
+}
+
+.thumbs td {
+	background-color:#fff;
+}
+.thumbs td:hover {
+	background-color:${borderColor};
+}
+.thumbs td:hover a {
+	color:#fff;
+}
+
+.mainimage {
+	-moz-border-radius:4px;
+	border-radius:4px;
+	-moz-box-shadow:inset 2px 4px 12px rgba(0,0,0,0.25);
+	-webkit-box-shadow:inset 2px 4px 12px rgba(0,0,0,0.25);
+	box-shadow:inset 2px 4px 12px rgba(0,0,0,0.25);
+}
+
+.thumbnavigation {
+	padding:5px 0 0 0;
+	background-color:rgba(0,0,0,0.4);
+	-moz-box-shadow:inset 0 2px 4px rgba(0,0,0,0.4);
+	-webkit-box-shadow:inset 0 2px 4px rgba(0,0,0,0.4);
+	box-shadow:inset 0 2px 4px rgba(0,0,0,0.4);
+	overflow:hidden;
+}
+
+.thumbnavigation .actual img {
+	border-color:${panelBackground};
+	-moz-box-shadow:0 2px 4px rgba(0,0,0,0.4);
+	-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.4);
+	box-shadow:0 2px 4px rgba(0,0,0,0.4);
+}
+

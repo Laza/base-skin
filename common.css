@@ -1,0 +1,461 @@
+@charset "utf-8";
+<%
+	// Layout calculations
+	
+	// General padding of the main boxes
+	int boxPadding = 20;
+
+	// Index page thumbnails
+	int thumbCellPadding = 4;
+	int thumbCellWidth = maxThumbWidth + 2 * thumbCellPadding;
+	int thumbCellSpacing = 2;
+	
+	// Main section widths
+	int indexWidth = thumbCellWidth * cols + thumbCellSpacing * ( cols + 1 ) + 2 * boxPadding;
+	int slideWidth = maxImageWidth + 2 * borderWidth + 2 * boxPadding;
+	
+	// Thumbnail navigation
+	// all thumbnails will fit to the height
+	int thumbnavWidth = Math.round( maxThumbWidth / 2 );
+	int thumbnavHeight = Math.round( maxThumbHeight / 2 );
+	// width of the left and right sides
+	int thumbnavSideWidth = Math.floor( (slideWidth - 60 - thumbnavWidth - (2 * thumbCellPadding)) / 2 );
+	// count of thumbnails on each side
+	// if no 'fixed shape thumbs' used the actual width can only be guessed with the (width <= height * 1.5) formula
+	// it will fail though if the pictures have > 1.5 aspect ratio (e.g. panoramas). Use fixed shape there!
+	int thumbnavCount = Math.floor( thumbnavSideWidth / (fixedShapeThumbs? thumbnavWidth : (maxThumbWidth * 0.75)) );
+
+	// Custom background image
+	String backgroundImage = "";
+	if ( backgroundImagePath != void && backgroundImagePath.length() > 0 )
+		backgroundImage = urlEncode(backgroundImagePath);
+	String backgroundPositionX = "center";
+	String backgroundPositionY = "center";
+	String backgroundRepeat = "repeat";
+
+%>
+
+body {
+	margin:0;
+	font-family:${fontFamily};
+	font-size:12px;
+	color:${textColor};
+	background-color:${backgroundColor};
+	<ja:if exists="backgroundImage">
+	background-image:url(${backgroundImage});
+	background-position:backgroundPositionX backgroundPositionY;
+	background-repeat:backgroundRepeat;
+	</ja:if>
+}
+
+a { 
+	color:${linkColor}; 
+	text-decoration:none; 
+}
+a:hover, a:focus { 
+	text-decoration:underline; 
+}
+
+/* Resetting some elements */
+
+table {
+	font-size:100%;
+}
+
+h1, h2, h3, h4, h5 {
+	font-weight:normal;
+	margin:0.2em 0;
+}
+h1 { font-size:200%; }
+h2 { font-size:160%; }
+h3 { font-size:140%; }
+h4 { font-size:120%; }
+h5 { font-size:110%; }
+
+a img {	
+	border:none; 
+	text-decoration:none; 
+}
+
+p { margin:0.5em 0; }
+
+/* Utility styles */
+
+.fleft {
+	float:left;
+	display:inline;
+}
+
+.fright {
+	float:right;
+	display:inline;
+}
+
+.clear {
+	clear:both;
+}
+
+/*********************************** Page structure */
+
+#main {
+	margin:0 auto;
+	background-color:${panelBackground};
+	width:${indexWidth}px;
+}
+
+#slide #main {
+	width:${slideWidth}px;
+}
+
+#navigation {
+	background-color:${textColor};
+	z-index:999;
+}
+
+#header { 
+	padding:${boxPadding}px;
+}
+
+#content {
+	padding:0 ${boxPadding}px;
+}
+#slide #content {
+	padding:0;
+}
+
+#footer {
+	font-size:85%;
+	padding:0.75em ${boxPadding}px;
+	text-align:center;
+}
+#footer .bottom-nav a {
+	padding:0.2em 0.5em;
+	color:${textColor};
+}
+#footer .bottom-nav ul {
+	display:inline-block;
+	margin:0;
+	padding:0;
+	list-style-type:none;
+}
+#footer .bottom-nav ul li {
+	display:inline-block;
+}
+#footer .bottom-nav ul li a {
+	display:block;
+}
+
+/*********************************** Top navigation */
+
+#navigation {
+	position:relative;
+	text-align:center;
+	line-height:40px;
+}
+#navigation .logo {
+	min-height:40px;
+	max-width:20%;
+	float:left;
+	display:inline-block;
+	margin-right:2%;
+}
+#navigation .logo a {
+	display:block;
+	height:40px;
+	line-height:40px;
+	overflow:hidden;
+}
+#navigation .logo img {
+	max-width:100%;
+	max-height:100%;
+	vertical-align:middle;
+	margin-top:-2px;
+}
+.top-nav {
+	text-align:center;
+}
+.top-nav.with-logo {
+	margin-left:22%;
+}
+.top-nav a {
+	display:block;
+	white-space:nowrap;
+	color:${panelBackground};
+}
+.top-nav li.actual {
+	background-color:${linkColor};
+}
+.top-nav ul {
+	display:inline-block;
+	padding:0;
+	margin:0;
+	list-style-type:none;
+	z-index:998;
+}
+.top-nav > ul > li {
+	position:relative;
+	display:inline-block;
+	width:auto;
+	height:100%;
+}
+.top-nav > ul > li.home {
+	width:30px;
+	height:30px;
+	margin-top:5px;
+}
+.top-nav > ul > li.home a {
+	display:block;
+	line-height:30px;
+	background-image:url(home_d.png);
+	background-position:center 0px;
+	background-repeat:no-repeat;
+	text-decoration:none;
+}
+.top-nav > ul > li.home a:hover {
+	background-position:center -30px;
+}
+.top-nav > ul > li > a {
+	line-height:40px;
+	font-size:1.2em;
+	padding:0 0.75em;
+}
+.top-nav > ul > li ul {
+	display:none;
+	position:absolute;
+	z-index:999;
+	background-color:${textColor};
+}
+.top-nav > ul > li > ul {
+	min-width:100%;
+}
+.top-nav > ul > li > ul li {
+	position:relative;
+	display:block;
+}
+.top-nav > ul > li > ul > li a {
+	line-height:30px;
+	font-size:1em;
+	padding:0 0.75em;
+}
+.top-nav > ul > li > ul > li ul {
+	left:100%;
+	top:0;
+}
+.top-nav > ul > li:hover > ul,
+.top-nav > ul > li > ul > li:hover > ul,
+.top-nav > ul > li > ul > ul > li > li:hover > ul {
+	display:block;
+}
+
+/*********************************** Navigation buttons */
+
+a.navigation,
+span.navigation {
+	display:inline-block;
+	width:40px;
+	height:40px;
+	line-height:40px;
+	background-image:url(navigation.png);
+	background-repeat:none;
+}
+a.navigation {
+	text-decoration:none;
+	background-position:0 0;
+}
+a#up {
+	background-position:0 0;
+}
+a#up:hover {
+	background-position:0 -40px;
+}
+span#up {
+	background-position:0 -80px;
+}
+a#prev {
+	background-position:-40px 0;
+}
+a#prev:hover {
+	background-position:-40px -40px;
+}
+span#prev {
+	background-position:-40px -80px;
+}
+a#next {
+	background-position:-80px 0;
+}
+a#next:hover {
+	background-position:-80px -40px;
+}
+span#next {
+	background-position:-80px -80px;
+}
+a#first {
+	background-position:-120px 0;
+}
+a#first:hover {
+	background-position:-120px -40px;
+}
+span#first {
+	background-position:-120px -80px;
+}
+a#last {
+	background-position:-150px 0;
+}
+a#last:hover {
+	background-position:-150px -40px;
+}
+span#last {
+	background-position:-150px -80px;
+}
+
+/*********************************** Head section */
+
+.headln {
+	margin:0 80px;
+	text-align:center;
+}
+.headln small {
+	font-size:80%;
+	margin-right:0.5em;
+}
+
+/*********************************** Index page thumbnail grid */
+
+.thumbs td {
+	width:${thumbCellWidth}px;
+	text-align:center;
+}
+.thumbs td:hover {
+	background-color:#eee;
+}
+.thumbs td.empty:hover {
+	background-color:transparent;
+}
+.thumbs .thumb {
+	position:relative;
+	width:${thumbCellWidth}px;
+	height:${maxThumbHeight}px;
+	padding:${thumbCellPadding}px 0;
+}
+.thumbs .thumb em {
+	position:absolute;
+	right:${thumbCellPadding}px;
+	top:${thumbCellPadding}px;
+	width:20px;
+	height:20px;
+	background:url(foldericon.png) center center no-repeat;
+}
+.thumbs .thumb a {
+	line-height:${maxThumbHeight}px;
+	height:100%;
+	text-decoration:none;
+}
+.thumbs .thumb a img {
+	margin-top:-3px;
+	vertical-align:middle;
+	border:0;
+	outline:none;
+}
+.thumbs .thumb a i {
+	line-height:0;
+	font-size:1px;
+	height:1px;
+	width:1px;
+	margin-right:-1px;
+	overflow:hidden;
+}
+.thumbs .caption {
+	width:${maxThumbWidth}px;
+	padding:${thumbCellPadding}px;
+	overflow:hidden;
+}
+.thumbs .caption h5 {
+	margin:0.5em 0;
+}
+.thumbs .caption p {
+	font-size:85%;
+	margin:0.25em 0;
+}
+	
+/*********************************** Slide page's main image */
+
+.mainimage {
+	margin:20px auto;
+	min-width:200px;
+	width:auto;
+	text-align:center;
+	padding:${borderWidth}px;
+	background-color:${borderColor};
+}
+.mainimage img {
+	border:none;
+	vertical-align:top;
+	outline:none;
+}
+.mainimage .caption {
+	padding:10px;
+	background-color:#fff;
+	overflow:hidden;
+	color:#444;
+}
+.mainimage .caption .title {
+	font-size:120%;
+	font-weight:bold;
+}
+.mainimage .caption .comment {
+}
+.mainimage .caption .meta {
+	font-size:85%;
+}
+.mainimage .caption .meta b {
+	font-weight:normal;
+	color:#999;
+}
+
+/*********************************** Thumbnail navigation */
+
+.thumbnavigation .actual img {
+	border:${thumbCellPadding}px solid ${textColor};
+}
+.thumbnavigation table {
+	margin:0 auto;
+}
+.thumbnavigation .leftcol,
+.thumbnavigation .rightcol {
+	width:${thumbnavSideWidth}px;
+}
+
+/*********************************** About page styles */
+
+.about-box {
+	display:block;
+	margin:0 100px;
+	background-color:#fff;
+	padding:1em;
+}
+.about-photo {
+	float:left;
+	display:inline;
+	margin-right:1em;
+}
+.about-text {
+	font-size:120%;
+	overflow:hidden;
+	color:#444;
+}
+
+/*********************************** About page styles */
+
+.contact-box {
+	display:block;
+	margin:0 100px;
+	background-color:#fff;
+	background-image:url(mail.png);
+	background-position:10px 6px;
+	background-repeat:no-repeat;
+	padding:1em 1em 1em 76px;
+}
+.contact-text {
+	font-size:120%;
+}
+

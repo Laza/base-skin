@@ -1,0 +1,242 @@
+/*
+	onload.bsh - creating the skin's user interface
+	author: Laszlo Molnar
+ */
+
+import se.datadosen.util.IO;
+import se.datadosen.component.*;
+import se.datadosen.jalbum.SkinProperties;
+
+// Controls that are to be imported into JAlbum as variables
+
+ControlPanel ui = new ControlPanel() {
+	
+	private ImageIcon createImageIcon(String path) {
+		path = skinDirectory.toString() + "/" + path;
+		return new ImageIcon(path);
+	}
+
+	private JFileChooser fc = new JFileChooser();
+	private JFileFilter imgFilter = new JFileFilter(new String[] {"jpg", "png", "gif"}, "Images");
+	
+	private void getFileToRes(String[] ext, JTextField name) {
+		getFileToRes(new JFileFilter(ext, "allowed files"), name);
+	}
+	
+	private void getFileToRes(JFileFilter filter, JTextField name) {
+		fc.setFileFilter(filter);
+		int returnVal = fc.showOpenDialog(window);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			String fn = fc.getSelectedFile().toString();
+			if ( !fn.trim().equals("") ) {
+				File src = new File(fn);
+				File dst = new File(engine.getDirectory(), "res");
+				if (!dst.exists()) {
+					dst.mkdir();
+				}
+				if (src.exists() &&  dst.exists()) {
+					try {
+						IO.copyFile(src, dst);
+						name.setText( src.getName() );
+					} catch (IOException e) {
+						System.out.println(e);
+					}
+				}
+			}
+		}
+	}
+	
+	// Site settings
+
+	ControlPanel site = new ControlPanel() {
+		
+		JCheckBox showTopNavigation = new JCheckBox(texts.getString("ui.showTopNavigation"), true);	
+		JCheckBox showBottomNavigation = new JCheckBox(texts.getString("ui.showBottomNavigation"), false);	
+		JTextField uplinkUrl = new JSmartTextField(20);
+		JTextField uplinkText = new JSmartTextField(20);
+		JTextField logoPath = new JSmartTextField(20);
+		JButton selectLogo = new JButton(texts.getString("ui.select"));
+		JTextArea headerContent = new JSmartTextArea(4, 20); 
+		JScrollPane headerContentPane = new JScrollPane(headerContent);
+		JTextArea footerContent = new JSmartTextArea(4, 20); 
+		JScrollPane footerContentPane = new JScrollPane(footerContent);
+		
+		{
+			selectLogo.addActionListener(new ActionListener() { 
+				public void actionPerformed(ActionEvent e) {
+					getFileToRes(imgFilter, logoPath);
+			}});
+			headerContent.setEditable(true);
+			headerContent.setLineWrap(true);
+			headerContent.setWrapStyleWord(true);
+			footerContent.setEditable(true);
+			footerContent.setLineWrap(true);
+			footerContent.setWrapStyleWord(true);
+			
+			add(showTopNavigation);
+			add(" ", showBottomNavigation);
+			add("br", new JLabelFor(texts.getString("ui.uplink"), uplinkUrl));
+			add("hfill", uplinkUrl);
+			add("br", new JLabelFor(texts.getString("ui.uplinkText"), uplinkText));
+			add("hfill", uplinkText);
+			add("br", new JLabelFor(texts.getString("ui.logo"), logoPath));
+			add("tab hfill", logoPath);
+			add("", selectLogo);
+			add("br", new JLabelFor(texts.getString("ui.headerContent"), headerContent));
+			add("tab hfill", headerContentPane);
+			add("br", new JLabelFor(texts.getString("ui.footerContent"), footerContent));
+			add("tab hfill", footerContentPane);
+		}
+	};
+	
+	// Design settings
+	
+	ControlPanel design = new ControlPanel() {
+	
+		JComboBox fontFamily = new JComboBox(new Object[] {
+			"Arial,Helvetica,sans-serif", 
+			"\"Segoe UI\",Arial,\"Nimbus Sans L\",sans-serif", 
+			"Verdana,Geneva,sans-serif", 
+			"\"Lucida Sans Unicode\",\"Lucida Grande\",sans-serif",
+			"Georgia,\"Times New Roman\",serif", 
+			"\"Trebuchet MS\",Verdana,sans-serif",
+			"\"Times New Roman\",Times,serif", 
+			"\"Courier New\",Courier,monospaced",
+			"Tahoma,Geneva,sans-serif", 
+			"\"Comic Sans MS\",cursive"
+		});
+		
+		JTextField backgroundImagePath = new JSmartTextField(20);
+		JButton selectBackgroundImage = new JButton(texts.getString("ui.select"));
+		
+		JColorSelector backgroundColor = new JColorSelector(texts.getString("ui.backgroundColor"), new JSmartTextField("#FFFFFF", 6));
+		JColorSelector panelBackground = new JColorSelector(texts.getString("ui.panelBackground"), new JSmartTextField("#FFFFFF", 6));
+		JColorSelector textColor = new JColorSelector(texts.getString("ui.textColor"), new JSmartTextField("#555555", 6));
+		JColorSelector linkColor = new JColorSelector(texts.getString("ui.linkColor"), new JSmartTextField("#000099", 6));
+		JColorSelector borderColor = new JColorSelector(texts.getString("ui.borderColor"), new JSmartTextField("#EEEEEE", 6));
+		JSpinner borderWidth = new JSpinner(new SpinnerNumberModel(10, 0, 100, 1));
+	
+		JTextField watermark = new JSmartTextField(20);
+
+		// Configure and layout controls
+		{
+			fontFamily.setSelectedIndex(1);
+			selectBackgroundImage.addActionListener(new ActionListener() { 
+				public void actionPerformed(ActionEvent e) {
+					getFileToRes(imgFilter, backgroundImagePath);
+			}});
+			
+			add(new JLabel(texts.getString("ui.fontFamily")));
+			add("tab", fontFamily);
+			add("br", new JLabelFor(texts.getString("ui.backgroundImage"), backgroundImagePath));
+			add("tab", backgroundImagePath);
+			add("hfill", selectBackgroundImage);
+			add("br", new JLabelFor(texts.getString("ui.backgroundColor"), backgroundColor));
+			add("tab", backgroundColor);
+			add("tab", backgroundColor.getTextComponent());
+			add("tab", new JLabelFor(texts.getString("ui.panelBackground"), panelBackground));
+			add("tab", panelBackground);
+			add("tab", panelBackground.getTextComponent());
+			add("br", new JLabelFor(texts.getString("ui.textColor"), textColor));
+			add("tab", textColor);
+			add("tab", textColor.getTextComponent());
+			add("tab", new JLabelFor(texts.getString("ui.linkColor"), linkColor));
+			add("tab", linkColor);
+			add("tab", linkColor.getTextComponent());
+			add("br", new JLabelFor(texts.getString("ui.borderColor"), borderColor));
+			add("tab", borderColor);
+			add("tab", borderColor.getTextComponent());
+			add("tab", new JLabelFor(texts.getString("ui.borderWidth"), borderWidth));
+			add("", borderWidth);
+			add("", new JLabel("px"));
+			add("br", new JLabel(texts.getString("ui.watermark")));
+			add("tab hfill", watermark);			
+		}
+	};
+	
+	// Index page controls
+	
+	ControlPanel index = new ControlPanel() {
+		
+		JCheckBox indexShowBreadcrumbPath = new JCheckBox(texts.getString("ui.showBreadcrumbPath"), false);	
+		
+		JCheckBox fixedShapeThumbs = new JCheckBox(texts.getString("ui.fixedShapeThumbs"), true);
+	
+		ControlPanel indexCaption = new ControlPanel(texts.getString("ui.caption"));
+		JCheckBox indexShowTitle = new JCheckBox(texts.getString("ui.title"));
+		JCheckBox indexShowComment = new JCheckBox(texts.getString("ui.comment"));
+		JCheckBox indexShowDate = new JCheckBox(texts.getString("ui.dateTaken"));
+		JCheckBox indexShowFileSize = new JCheckBox(texts.getString("ui.fileSize"));
+	
+		// Configure and layout controls
+		{
+			add(indexShowBreadcrumbPath);
+			add("tab", fixedShapeThumbs);
+			
+			indexCaption.add(indexShowTitle);
+			indexCaption.add("tab", indexShowComment);
+			indexCaption.add("tab", indexShowDate);
+			indexCaption.add("tab", indexShowFileSize);
+			add("br hfill", indexCaption);
+		}	
+	};
+	
+	// Slide page controls
+
+	ControlPanel slide = new ControlPanel() {
+
+		JCheckBox slideShowBreadcrumbPath = new JCheckBox(texts.getString("ui.showBreadcrumbPath"), false);	
+		JCheckBox thumbnailNavigation = new JCheckBox(texts.getString("ui.thumbnailNavigation"), true);
+		ControlPanel slideCaption = new ControlPanel(texts.getString("ui.caption"));
+		JCheckBox slideShowTitle = new JCheckBox(texts.getString("ui.title"), true);
+		JCheckBox slideShowComment = new JCheckBox(texts.getString("ui.comment"), true);
+		JCheckBox slideShowPhotoData = new JCheckBox(texts.getString("ui.photoData"), true);
+		JTextArea photoDataTemplate = new JSmartTextArea(8, 20); 
+		JScrollPane photoDataPane = new JScrollPane(photoDataTemplate);
+		
+		// Configure and layout controls
+		{
+			add(slideShowBreadcrumbPath);
+			add("tab", thumbnailNavigation);
+		
+			slideCaption.add(slideShowTitle);
+			slideCaption.add("tab", slideShowComment);
+			slideCaption.add("tab", slideShowPhotoData);
+			photoDataTemplate.setText("photographer|artist|Artist|Owner|Copyright|Iptc.By-line|Iptc.Copyright Notice, Xmp.Creator, Xmp.Title, objectName, Xmp.Subject, Xmp.Description, Iptc.keywords, Xmp.Format, Xmp.Rights, Xmp.Identifier, Xmp.Label, Country/Primary Location, Province/State, City, Sub-location, originalDate|Date/Time Original|Date/Time|CreateDate|ModifyDate, camera|Model, lens|Lens|Xmp.Lens-Information|Canon Makernote.Unknown tag (0x0095), focalLength35mm|focusDistance|Focal Length|Focallength, SubjectDistance, meteringMode|Metering Mode, isoEquivalent|ISO Speed Ratings, exposureTime|Exposure Time|Shutter Speed Value|ShutterSpeedValue, Aperture Value|aperture|F-Number|FNumber|Aperturevalue, Exposure Bias Value, Exposure Program|Exposureprogram|Exposure Mode, Xmp.SceneType, White Balance|WhiteBalance, Xmp.ColorSpace, Xmp.LightSource, flash|Flash, resolution");
+			photoDataTemplate.setEditable(true);
+			photoDataTemplate.setLineWrap(true);
+			photoDataTemplate.setWrapStyleWord(true);
+			ComponentUtilities.whenSelectedEnable(slideShowPhotoData, new JComponent[] {photoDataTemplate});
+			slideCaption.add("br hfill", photoDataPane);
+			add("br hfill", slideCaption);			
+		}
+	};
+
+	// The top level layout
+
+	JTabbedPane tabs = new JTabbedPane() {
+		
+		{ 
+			addTab(texts.getString("ui.site"), createImageIcon("plugins/site.png"), site);
+			addTab(texts.getString("ui.design"), createImageIcon("plugins/design.png"), design);
+			addTab(texts.getString("ui.indexPage"), createImageIcon("plugins/index.png"), index);
+			addTab(texts.getString("ui.slidePage"), createImageIcon("plugins/slide.png"), slide);
+		}
+	};
+	
+	{
+		add("br hfill", tabs);
+		
+		// Version info and links
+		add("br center", new JLabel("Jalbum " + internalVersion));
+		add(new JLinkLabel("http://jalbum.net/software/download/current", "upgrade", "Download the latest version of Jalbum!"));
+		add(new JLabel("|  " + skin + " skin " + (new SkinProperties(skinDirectory).getProperty(SkinProperties.VERSION))));
+		add(new JLinkLabel("http://jalbum.net/skins/skin/" + skin, "upgrade", "Download the latest skin version!"));
+	}
+};
+	
+// Finally install components into JAlbum
+
+window.setSkinUI(ui);
+window.pack();
+

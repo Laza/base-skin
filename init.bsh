@@ -1,0 +1,207 @@
+/*
+	init.bsh - the Beanshell script to initialize the skin
+	Author: Laza
+*/
+
+import se.datadosen.jalbum.SkinProperties;
+
+engine.processBeanShellFile(new File(skinDirectory, "includes/util.bsh"));
+
+/******************************************** Initializing routines */
+
+// Skin version
+String skinVersion = (new SkinProperties(skinDirectory).getProperty(SkinProperties.VERSION));
+
+// Name of chosen style
+String styleName = style.substring(0, style.indexOf("."));
+
+// Reduced thumb dimensions for the thumbnail navigation on the slide pages
+int reducedThumbWidth = Math.round(maxThumbWidth / 2);
+int reducedThumbHeight = Math.round(maxThumbHeight / 2);
+
+// Base page name (default: index.html)
+String pageName = engine.getIndexPageName() + engine.getPageExtension();
+
+// Link for the "up" button
+String uplink;
+
+// Link to the upper level page for the breadcrumb path
+String linkUp;
+
+// Breadcrumb paths
+String indexBreadcrumbPath;
+String slideBreadcrumbPath;
+String pageBreadcrumbPath;
+
+// Navigation bars - the variables used on the page
+String topNavigation;
+String bottomNavigation;
+String slideTopNavigation;
+String slideBottomNavigation;
+
+// Extra images - used in sites only
+String logo;
+
+void initSkin() {
+	
+	// Applying the fixed shape crop filter
+	
+	if ( fixedShapeThumbs ) {
+		FixedShapeFilter fixed = new FixedShapeFilter();
+		engine.addFilter(fixed, JAFilter.THUMBNAILS_PRESCALE_STAGE);
+	}
+	
+	// Applying watermark
+	
+	if (watermark != void && !isEmpty(watermark)) {
+		WatermarkFilter wm = new WatermarkFilter();
+		wm.setText(watermark.toString());
+		wm.setFace("Arial");
+		wm.setStyle("bold");
+		wm.setSize(20);
+		wm.setColor("#ffffff");
+		wm.setStrengthPercent(15);
+		wm.setAlign("right");
+		wm.setValign("bottom");
+		wm.setMargin(20);
+		wm.setAntialias(true);
+		engine.addFilter(wm, JAFilter.CLOSEUPS_POSTSCALE_STAGE);
+	}
+	
+	// Copying the author and logo images
+	
+	logo = urlEncode(logoPath);
+	
+	// Creating Up link
+	
+	linkUp = (uplinkUrl == void || isEmpty(uplinkUrl))? "" : 
+		"<a href=\"" + uplinkUrl + "\">" + ((uplinkText == void || isEmpty(uplinkText))? getText("home") : uplinkText ) + "</a>";
+}
+
+initSkin();
+
+// Initializing a non-album page
+
+void initPage() {
+	
+	// Link to index.html
+	uplink = pageName;
+	
+	// Navigation links
+	topNavigation = showTopNavigation? getNavigation(logo.length() == 0) : "";
+	bottomNavigation = showBottomNavigation? getRootNavigation() : "";
+	
+}
+
+// Initializing index page
+
+void initIndex() {
+	
+	// Link up from the top level page
+	uplink = (level > 0)? parentIndexPage : uplinkUrl.trim();
+	// uplink = (level > 0)? parentIndexPage : ((JAlbumUtilities.hasWebPages(rootFolder))? "" : uplinkUrl); // No uplink if used as Site
+	
+	// Compiling breadcrumb for index pages
+	indexBreadcrumbPath = indexShowBreadcrumbPath? getIndexBreadcrumb() : "";
+	
+	// The same for slide pages (need to be made only once per folder - this is why it is here)
+	slideBreadcrumbPath = slideShowBreadcrumbPath? getSlideBreadcrumb() : "";
+	pageBreadcrumbPath = slideShowBreadcrumbPath? getPageBreadcrumb() : "";
+
+	// Adding top level link
+	if ( !isEmpty(linkUp) ) {
+		indexBreadcrumbPath = linkUp + (isEmpty(indexBreadcrumbPath)? "" : (pathSep + indexBreadcrumbPath));
+		slideBreadcrumbPath = linkUp + (isEmpty(slideBreadcrumbPath)? "" : (pathSep + slideBreadcrumbPath));
+		pageBreadcrumbPath = linkUp + (isEmpty(pageBreadcrumbPath)? "" : (pathSep + pageBreadcrumbPath));
+	}
+	
+	// Using comment variable universally for both images and folders
+	comment = (description == void || isEmpty(description))? "" : description;
+		
+	// Navigation links for the index page
+	topNavigation = showTopNavigation? getNavigation(logo.length() == 0 && level > 0) : "";
+	bottomNavigation = showBottomNavigation? getRootNavigation() : "";
+	
+	// Navigation links for all slide pages
+	slideTopNavigation = topNavigation.replaceAll("href=\\\"", "href=\\\"../");
+	slideBottomNavigation = bottomNavigation.replaceAll("href=\\\"", "href=\\\"../");
+}
+
+// Initializing a thumbnail in the <ja:fileterator> loop
+
+String thumbCaption;
+
+void initThumb() {
+	
+	StringBuilder sb = new StringBuilder();
+	
+	if ( folder != void && folder != null ) {
+		sb.append("<h5><a href=\"" + closeupPath + "\">" + title.replaceAll("_", " ") + "</a></h5>");
+	} else {
+		if ( indexShowTitle ) {
+			sb.append("<h5><a href=\"" + closeupPath + "\">" + title.replaceAll("_", " ") + "</a></h5>");
+		}
+		if ( indexShowComment && comment != void && !isEmpty(comment) ) {
+			sb.append("<p>" + comment + "</p>");
+		}
+		if ( indexShowDate && originalDate != void && !isEmpty(originalDate) ) {
+			sb.append("<p>" + originalDate + "</p>");
+		}
+		if ( indexShowFileSize && fileSize != void && !isEmpty(fileSize) ) {
+			sb.append("<p>" + getSizeAsString() + "</p>");
+		}
+	}
+	
+	thumbCaption = sb.toString();
+}
+
+// Initializing slide page
+
+String slideCaption;
+String sep = " &nbsp;&middot;&nbsp; ";
+String imgMap;
+String imgMapName = "imgmap";
+
+void initSlide() {
+	
+	StringBuilder sb = new StringBuilder();
+	
+	// Slide page caption
+	
+	if ( slideShowTitle ) {
+		sb.append("<span class=\"title\">" + title.replaceAll("_", " ") + "</span>");
+	}
+	if ( slideShowComment && comment != void && !isEmpty(comment) ) {
+		if (sb.length() > 0) sb.append(sep);
+		sb.append("<span class=\"comment\">" + comment + "</span>");
+	}
+	if ( slideShowPhotoData && meta != void && meta != null ) {
+		if (sb.length() > 0) sb.append(sep);
+		sb.append("<span class=\"meta\">" + getPhotoData( photoDataTemplate ) + "</span>");
+	}
+	if ( originalPath != void ) {
+		if (sb.length() > 0) sb.append(sep);
+		sb.append("<span class=\"original\"><a href=\"" + originalPath + "\" title=\"" + getText("originalInfo") + "\">" + getText("download") + "</a></span>");  
+	}
+	
+	slideCaption = sb.toString();
+
+	// Image navigation map
+	
+	sb.setLength(0);
+	
+	if ( previousPage != void && previousPage != null || nextPage != void && nextPage != null ) {
+		int half = Math.round(imageWidth / 2);
+		sb.append("<map name=\"" + imgMapName + "\">");
+		if ( previousPage != void && previousPage != null )
+			sb.append("<area href=\"" + previousPage + "\" shape=\"rect\" coords=\"0,0," + half + "," + imageHeight + "\" alt=\"" + getText("previousPage") + "\" title=\"" + getText("previousPage") + "\">");
+		if ( nextPage != void && nextPage != null )
+			sb.append("<area href=\"" + nextPage + "\" shape=\"rect\" coords=\"" + half + ",0," + imageWidth + "," + imageHeight + "\" alt=\"" + getText("nextPage") +  "\" title=\"" + getText("nextPage") + "\">");
+		sb.append("</map>");
+	}
+	
+	imgMap = sb.toString();
+	
+	topNavigation = slideTopNavigation;
+	bottomNavigation = slideBottomNavigation;
+}
